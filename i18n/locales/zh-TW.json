@@ -50,7 +50,10 @@
       "gt1gb-lt5gb": "1GB-5GB",
       "gt5gb": "大於5GB"
     },
-    "results_found": "找到約 {count} 條結果",
+    "results_found": "找到 {count} 條結果",
+    "results_on_page": "本頁顯示 {count} 條結果",
+    "show_total_count": "查看結果總數",
+    "total_count_error": "暫時無法取得總數，請重試。",
     "cost_time": "(耗時 {cost_time}ms)",
     "more_files": "…還有 {count} 個文件",
     "magnet": "磁力連結",

@@ -3,10 +3,8 @@ import { startServerAndCreateNextHandler } from "@as-integrations/next/dist";
 import { gql } from "graphql-tag";
 import { NextRequest } from "next/server";
 
-// import { search, torrentByHash, statsInfo } from "./service";
-
 const isDemoMode = process.env.DEMO_MODE === "true";
-const { search, torrentByHash, statsInfo } = isDemoMode
+const { search, searchCount, torrentByHash, statsInfo } = isDemoMode
   ? require("./moke")
   : require("./service");
 
@@ -45,6 +43,12 @@ const typeDefs = gql`
     withTotalCount: Boolean
   }
 
+  input SearchFiltersInput {
+    keyword: String!
+    filterTime: String
+    filterSize: String
+  }
+
   type SearchResult {
     keywords: [String!]!
     torrents: [Torrent!]!
@@ -62,6 +66,7 @@ const typeDefs = gql`
 
   type Query {
     search(queryInput: SearchQueryInput!): SearchResult!
+    searchCount(input: SearchFiltersInput!): Int!
     torrentByHash(hash: String!): Torrent
     statsInfo: statsInfoResult
   }
@@ -73,6 +78,7 @@ const server = new ApolloServer({
   resolvers: {
     Query: {
       search,
+      searchCount,
       torrentByHash,
       statsInfo,
     },

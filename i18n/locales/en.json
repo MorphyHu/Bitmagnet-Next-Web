@@ -52,7 +52,10 @@
       "gt1gb-lt5gb": "1GB-5GB",
       "gt5gb": "More than 5GB"
     },
-    "results_found": "About {count} results found",
+    "results_found": "{count, plural, one {# result found} other {# results found}}",
+    "results_on_page": "{count, plural, one {# result on this page} other {# results on this page}}",
+    "show_total_count": "Show total results",
+    "total_count_error": "Could not load the total. Please try again.",
     "cost_time": "(Processed in {cost_time}ms)",
     "more_files": "…and {count} more files",
     "magnet": "Magnet link",

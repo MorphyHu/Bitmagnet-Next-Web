@@ -1,9 +1,8 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
-import { Tooltip, Spinner } from "@nextui-org/react";
+import { Spinner } from "@nextui-org/react";
 
 import apiFetch from "@/utils/api";
-import { InfoFilledIcon } from "@/components/icons";
 import { formatByteSize, formatDate } from "@/utils";
 
 async function StatsCard() {
@@ -14,9 +13,9 @@ async function StatsCard() {
   });
 
   return (
-    <div className="text-xs text-foreground-600">
-      <h4 className="font-bold">{t("Stats.title")}</h4>
-      <ul>
+    <div className="text-xs text-foreground-600 bg-background/80 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-default-200">
+      <h4 className="font-bold mb-2">{t("Stats.title")}</h4>
+      <ul className="space-y-1">
         <li>{t("Stats.size", { size: formatByteSize(data.size) })}</li>
         <li>
           {t("Stats.total_count", {
@@ -38,20 +37,8 @@ async function StatsCard() {
 
 export function Stats() {
   return (
-    <Tooltip
-      classNames={{
-        content: "bg-opacity-60",
-      }}
-      closeDelay={0}
-      content={
-        <Suspense fallback={<Spinner size="sm" />}>
-          <StatsCard />
-        </Suspense>
-      }
-      delay={0}
-      radius="sm"
-    >
-      <InfoFilledIcon className="cursor-pointer text-gray-500" size={15} />
-    </Tooltip>
+    <Suspense fallback={<Spinner size="sm" />}>
+      <StatsCard />
+    </Suspense>
   );
 }

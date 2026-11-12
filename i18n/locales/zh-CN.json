@@ -50,7 +50,10 @@
       "gt1gb-lt5gb": "1GB-5GB",
       "gt5gb": "大于5GB"
     },
-    "results_found": "找到约 {count} 条结果",
+    "results_found": "找到 {count} 条结果",
+    "results_on_page": "本页显示 {count} 条结果",
+    "show_total_count": "查看结果总数",
+    "total_count_error": "暂时无法获取总数，请重试。",
     "cost_time": "(用时 {cost_time}ms)",
     "more_files": "…还有 {count} 个文件",
     "magnet": "磁力链接",

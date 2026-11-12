@@ -1,6 +1,7 @@
 "use client";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pagination, Select, SelectItem } from "@nextui-org/react";
+import { Button, Pagination, Select, SelectItem } from "@nextui-org/react";
 import { useTranslations } from "next-intl";
 import { useIsSSR } from "@react-aria/ssr";
 
@@ -14,13 +15,13 @@ export default function SearchResultsList({
   resultList,
   keywords,
   cost_time = 0,
-  total_count = 0,
+  hasMore,
   searchOption,
 }: {
   resultList: SearchResultsListProps["torrents"];
   keywords: string[];
   cost_time: number;
-  total_count: number;
+  hasMore: boolean;
   searchOption: {
     keyword: string;
     p: number;
@@ -33,6 +34,39 @@ export default function SearchResultsList({
   const router = useRouter();
   const isSSR = useIsSSR();
   const t = useTranslations();
+  const [count, setCount] = useState<number>();
+  const [countStatus, setCountStatus] = useState<"idle" | "loading" | "error">(
+    "idle",
+  );
+  const { keyword, filterTime, filterSize, p, ps } = searchOption;
+  const totalCount =
+    count ?? (p === 1 && !hasMore ? resultList.length : undefined);
+
+  async function loadCount() {
+    setCountStatus("loading");
+    try {
+      const response = await fetch("/api/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `query SearchCount($input: SearchFiltersInput!) {
+            searchCount(input: $input)
+          }`,
+          variables: { input: { keyword, filterTime, filterSize } },
+        }),
+      });
+      const { data } = await response.json();
+
+      if (!response.ok || typeof data?.searchCount !== "number") {
+        throw new Error("Search count unavailable");
+      }
+
+      setCount(data.searchCount);
+      setCountStatus("idle");
+    } catch {
+      setCountStatus("error");
+    }
+  }
 
   const handleFilterChange = (type: string, value: string) => {
     const updatedSearchOption = {
@@ -70,11 +104,11 @@ export default function SearchResultsList({
     router.push(url);
   };
 
-  const pagiConf = {
-    page: searchOption.p,
-    total: Math.min(Math.ceil(total_count / searchOption.ps), SEARCH_PAGE_MAX),
-    siblinds: $env.isMobile ? 1 : 3,
-  };
+  const knownPages = totalCount === undefined ? 0 : Math.ceil(totalCount / ps);
+  const pageCount = Math.min(
+    SEARCH_PAGE_MAX,
+    Math.max(p + (hasMore ? 1 : 0), knownPages),
+  );
 
   return (
     <>
@@ -117,13 +151,29 @@ export default function SearchResultsList({
         ))}
       </div>
 
-      <div className="text-sm text-gray-500 mb-4">
-        {t("Search.results_found", { count: total_count })}
-
+      <div className="mb-4 flex flex-wrap items-center gap-x-2 text-sm text-gray-500">
+        <span aria-live="polite">
+          {totalCount === undefined
+            ? t("Search.results_on_page", { count: resultList.length })
+            : t("Search.results_found", { count: totalCount })}
+        </span>
         {cost_time > 0 && (
-          <span className="ml-1 text-xs">
-            {t("Search.cost_time", { cost_time: cost_time })}
+          <span className="text-xs">
+            {t("Search.cost_time", { cost_time })}
           </span>
+        )}
+        {totalCount === undefined && (
+          <Button
+            isLoading={countStatus === "loading"}
+            size="sm"
+            variant="light"
+            onPress={loadCount}
+          >
+            {t("Search.show_total_count")}
+          </Button>
+        )}
+        {countStatus === "error" && (
+          <span role="status">{t("Search.total_count_error")}</span>
         )}
       </div>
 
@@ -133,19 +183,18 @@ export default function SearchResultsList({
         </div>
       ))}
 
-      {!isSSR && pagiConf.total > 1 && (
+      {!isSSR && pageCount > 1 && (
         <Pagination
           key={`pagi_${Object.values(searchOption).join("_")}`}
           className="flex justify-center"
           classNames={{
             wrapper: "gap-x-2",
           }}
-          initialPage={pagiConf.page}
-          page={pagiConf.page}
+          page={p}
           showControls={$env.isDesktop}
-          siblings={pagiConf.siblinds}
+          siblings={$env.isMobile ? 1 : 3}
           size={$env.isMobile ? "lg" : "md"}
-          total={pagiConf.total}
+          total={pageCount}
           onChange={(page) => handlePageChange(page, searchOption)}
         />
       )}
